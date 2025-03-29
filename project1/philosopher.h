@@ -12,6 +12,7 @@ using namespace std;
 struct Philosopher
 {
     public:
+        int index;
         int state;
         pthread_cond_t conditionVariable; 
 };

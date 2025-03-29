@@ -10,7 +10,20 @@ class Table
         Table(int N)
         {
             this->N = N;
-            philosophers = (Philosopher*)malloc(N * sizeof(Philosopher));\
+            philosophers = (Philosopher*)malloc(N * sizeof(Philosopher));
+
+            for (int i = 0; i < N; i++)
+            {
+                philosophers[i].index = i;
+                philosophers[i].state = THINKING;
+            }
+
+            for (int i = 0; i < N; i++)
+            {
+                pthread_cond_init(&philosophers[i].conditionVariable, NULL);
+            }
+
+            pthread_mutex_init(&mutexLock, NULL);
         }
 
         // Check if Philosopher can eat 
