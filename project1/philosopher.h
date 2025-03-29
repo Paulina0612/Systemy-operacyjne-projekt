@@ -10,7 +10,11 @@ using namespace std;
 // Philosopher semaphore 
 class Philosopher
 {
-    int state;
+    public:
+        int state;
+        pthread_cond_t conditionVariable; 
+        
 
+    
 };
 

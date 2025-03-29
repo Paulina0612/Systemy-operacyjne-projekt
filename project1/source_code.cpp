@@ -1,9 +1,8 @@
-#include "philosopher.h"
+#include "table.h"
 
 int N = 0; // Amount of philosophers
 
-
-Philosopher *philosophers;
+Table* table;
 
 int main(int argc, char *argv[]) {
 	if(argc>1){
@@ -14,13 +13,12 @@ int main(int argc, char *argv[]) {
         return -1;
     }
 
-    philosophers = (Philosopher*)malloc(N * sizeof(Philosopher));
+    table = new Table(N);
 
-    if(philosophers==NULL){
-        cout << "Allocating memory for philosophers failed.";
+    if(table == NULL || table->philosophers == NULL){
+        cout << "Allocating memory failed.";
         return -1;
     }
-
-
+    
 	return 0;
 }
