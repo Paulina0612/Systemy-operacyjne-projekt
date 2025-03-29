@@ -5,17 +5,18 @@ class Table
     public: 
         Philosopher *philosophers;
         pthread_mutex_t mutexLock;
-
+        int N;
 
         Table(int N)
         {
+            this->N = N;
             philosophers = (Philosopher*)malloc(N * sizeof(Philosopher));\
         }
 
         // Check if Philosopher can eat 
         void CheckConditionsForPhilosopher(int n)
         {
-            if (philosophers[(n+1)%5].state != EATING && philosophers[(n-1)%5].state!= EATING 
+            if (philosophers[(n+1)%N].state != EATING && philosophers[(n-1)%N].state!= EATING 
                 && philosophers[n].state == WAITING)
                 {
                     philosophers[n].state = EATING;
@@ -36,6 +37,19 @@ class Table
             if (philosophers[n].state != EATING)
                 pthread_cond_wait(&philosophers[n].conditionVariable, &mutexLock);
             cout << "Philosopher number " << n << " is eating" << endl;
+
+            pthread_mutex_unlock(&mutexLock); // Unlock mutex
+        }
+
+
+        // Put Fork function
+        void PutFork(int n)
+        {
+            pthread_mutex_lock(&mutexLock); // Lock mutex
+            philosophers[n].state = THINKING; // Indicates that the philosopher is thinking
+
+            CheckConditionsForPhilosopher((n+1)%N);
+            CheckConditionsForPhilosopher((n-1)%N);
 
             pthread_mutex_unlock(&mutexLock); // Unlock mutex
         }
