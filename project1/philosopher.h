@@ -4,17 +4,15 @@
 
 #include <iostream>
 #include <stdlib.h>  // for strtol
+#include <unistd.h>
 using namespace std;
 
 
 // Philosopher semaphore 
-class Philosopher
+struct Philosopher
 {
     public:
         int state;
         pthread_cond_t conditionVariable; 
-        
-
-    
 };
 
