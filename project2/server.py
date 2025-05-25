@@ -1,8 +1,7 @@
 # Import the socket library for creating server/client communication
 import socket
 
-# Importing thread functionality from _thread module for handling multiple clients
-from _thread import *
+# Importing threading module to handle multiple clients simultaneously 
 import threading
 
 # A lock object to manage access to shared resources between threads
@@ -10,28 +9,49 @@ import threading
 # This is used to ensure that only one thread can access the shared resource at a time
 print_lock = threading.Lock()
 
+# Array to hold client threads
+client_sockets = []
+
 
 # This is the function that will handle communication with a connected client
 # It takes a client socket object as an argument and processes messages from the client
-def threaded_client(c):
-    # A loop to keep the thread running for continuous communication
-    while True:
-        # Receive data from the client (up to 1024 bytes)
-        data = c.recv(1024)
+def threaded_client(c, addr):
+    # Print the address of the connected client
+    with print_lock:
+        print(f"[{threading.current_thread().name}] Connected to: {addr[0]}:{addr[1]}")
 
-        # If no data is received, the client has likely disconnected
-        if not data:
-            print('Bye')
+    try:
+        # Send a welcome message to the client
+        welcome_message = "Welcome to the server! You can start sending messages."
+        c.send(welcome_message.encode('ascii'))
 
-            # Release the lock so another thread can take it
-            print_lock.release()
-            break
+        # A loop to keep the thread running for continuous communication
+        while True:
+            # Receive data from the client (up to 1024 bytes)
+            data = c.recv(1024)
 
-        # Send the reversed data back to the client
-        c.send(data)
+            # If no data is received, the client has likely disconnected
+            if not data:
+                break
 
-    # Close the client connection when done
-    c.close()
+            #c.send(data)  # Echo data back to the client
+            # Print the received data to the console for all connected clients
+            for socket in client_sockets:
+                try:
+                    # Send the received data to all connected clients
+                    socket.send(data)
+                except Exception as e:
+                    with print_lock:
+                        print(f"[{threading.current_thread().name}] Error sending data: {e}")
+                
+
+    except Exception as e:
+        with print_lock:
+            print(f"[{threading.current_thread().name}] Error: {e}")
+    finally:
+        c.close()
+        with print_lock:
+            print(f"[{threading.current_thread().name}] Disconnected from: {addr[0]}:{addr[1]}")
 
 
 # This function sets up the main server logic
@@ -53,24 +73,17 @@ def Main():
 
     # put the socket into listening mode
     s.listen(5)
-    print("Socket is listening")
+    print(f"[MAIN] Server listening on port {port}...")
 
-    # Run an infinite loop to accept multiple client connections
     while True:
-        # Accept a new connection from a client
         c, addr = s.accept()
-
-        # Acquire the lock to indicate this thread is handling a client
-        print_lock.acquire()
-
-        # Print the address of the connected client
-        # addr[0] is the IP address, addr[1] is the port number
-        print('Connected to :', addr[0], ':', addr[1])
-
-        # Start a new thread to handle this client using the threaded() function
-        start_new_thread(threaded_client, (c,))
+        # Start a new thread to handle the client
+        client_thread = threading.Thread(target=threaded_client, args=(c, addr))
+        client_sockets.append(c)
+        client_thread.start()
 
 
 # Entry point of the program; only runs if the script is executed directly
 if __name__ == '__main__':
     Main()
+
