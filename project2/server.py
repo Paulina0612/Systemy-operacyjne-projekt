@@ -14,7 +14,27 @@ print_lock = threading.Lock()
 # This is the function that will handle communication with a connected client
 # It takes a client socket object as an argument and processes messages from the client
 def threaded_client(c):
-    return 
+    # A loop to keep the thread running for continuous communication
+    while True:
+        # Receive data from the client (up to 1024 bytes)
+        data = c.recv(1024)
+
+        # If no data is received, the client has likely disconnected
+        if not data:
+            print('Bye')
+
+            # Release the lock so another thread can take it
+            print_lock.release()
+            break
+
+        # Reverse the received data (assumed to be a string or bytes)
+        data = data[::-1]
+
+        # Send the reversed data back to the client
+        c.send(data)
+
+    # Close the client connection when done
+    c.close()
 
 
 # This function sets up the main server logic
