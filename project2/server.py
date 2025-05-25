@@ -27,9 +27,6 @@ def threaded_client(c):
             print_lock.release()
             break
 
-        # Reverse the received data (assumed to be a string or bytes)
-        data = data[::-1]
-
         # Send the reversed data back to the client
         c.send(data)
 
@@ -38,7 +35,7 @@ def threaded_client(c):
 
 
 # This function sets up the main server logic
-def main():
+def Main():
     # Empty string means the server will accept connections on all available IPv4 interfaces
     host = ""
 
@@ -52,6 +49,11 @@ def main():
 
     # Bind the socket to the specified host and port
     s.bind((host, port))
+    print("Socket binded to port", port)
+
+    # put the socket into listening mode
+    s.listen(5)
+    print("Socket is listening")
 
     # Run an infinite loop to accept multiple client connections
     while True:
@@ -71,4 +73,4 @@ def main():
 
 # Entry point of the program; only runs if the script is executed directly
 if __name__ == '__main__':
-    main()
+    Main()
