@@ -7,7 +7,7 @@
    ````md
    g++ ./project1/source_code.cpp -o ./project1/source_code
    ````
-5. Run command
+4. Run command
    ````md
    ./project1/source_code.exe {N}
    ````

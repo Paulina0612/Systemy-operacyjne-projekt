@@ -9,6 +9,9 @@ import threading
 # This is used to ensure that only one thread can access the shared resource at a time
 print_lock = threading.Lock()
 
+# A lock to manage access to the client sockets list
+client_sockets_lock = threading.Lock()
+
 # Array to hold client threads
 client_sockets = []
 
@@ -34,24 +37,28 @@ def threaded_client(c, addr):
             if not data:
                 break
 
-            #c.send(data)  # Echo data back to the client
-            # Print the received data to the console for all connected clients
-            for socket in client_sockets:
-                try:
-                    # Send the received data to all connected clients
-                    socket.send(data)
-                except Exception as e:
-                    with print_lock:
-                        print(f"[{threading.current_thread().name}] Error sending data: {e}")
+            # Broadcast received message to all connected clients
+            with client_sockets_lock:
+                for socket in client_sockets:
+                    try:
+                        socket.send(data)
+                    except Exception as e:
+                        with print_lock:
+                            print(f"[{threading.current_thread().name}] Error sending data: {e}")
+
                 
 
     except Exception as e:
         with print_lock:
             print(f"[{threading.current_thread().name}] Error: {e}")
     finally:
+        with client_sockets_lock:
+            if c in client_sockets:
+                client_sockets.remove(c)  # Remove disconnected client
         c.close()
         with print_lock:
             print(f"[{threading.current_thread().name}] Disconnected from: {addr[0]}:{addr[1]}")
+
 
 
 # This function sets up the main server logic
@@ -79,7 +86,8 @@ def Main():
         c, addr = s.accept()
         # Start a new thread to handle the client
         client_thread = threading.Thread(target=threaded_client, args=(c, addr))
-        client_sockets.append(c)
+        with client_sockets_lock:
+            client_sockets.append(c)
         client_thread.start()
 
 
